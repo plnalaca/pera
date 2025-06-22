@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: my-hack-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - hack_mysql_data:/var/lib/mysql
+    restart: always
+    networks:
+      - myhacknetwork
+  
+  phpmyadmin:
+    image: linuxserver/phpmyadmin
+    container_name: my-hack-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${PMA_PORT}:80"
+    restart: always
+    networks:
+      - myhacknetwork
+
+  backend:
+    build:
+      context: ./backend
+    container_name: my-hack-backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "${BACKEND_PORT}:8000"
+    depends_on:
+      - mysql
+    restart: always
+    networks:
+      - myhacknetwork
+
+volumes:
+  hack_mysql_data:
+
+networks:
+  myhacknetwork:
+    driver: bridge
+
